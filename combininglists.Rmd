@@ -1,0 +1,105 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+getwd()
+```
+
+```{r}
+setwd("/Users/wait.aumann/Desktop/OneDrive - Emory University/R Stuff/Combining_data")
+getwd()
+```
+
+##Install Gprofiler 2 from menu above website: https://cran.r-project.org/web/packages/gprofiler2/index.html
+##Install Murine genedatabases with annottate package
+
+```{r}
+
+
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+BiocManager::install("annotate")
+BiocManager::install("org.Mm.eg.db")
+BiocManager::install("gprofiler2")
+```
+
+
+
+```{r}
+library(annotate)
+library(gprofiler2)
+library(org.Mm.eg.db)
+library(data.table)
+```
+
+
+
+```{r}
+original_data_de <- file.path("DifferentalExpression.xlsx")
+calm_empty <- readxl::read_xlsx("DifferentalExpression.xlsx", sheet = 3)
+original_data_lmb <- file.path("MicroarrayANOVAresults.xlsx")
+lmbvnolmb <- readxl::read_xlsx("MicroarrayANOVAresults.xlsx", sheet = 1)
+```
+
+```{r}
+dtce <- data.table(calm_empty)
+dtlep <- data.table(lmbvnolmb)
+head(dtce)
+head(dtlep)
+```
+
+```{r}
+dtce_filter <- dtce[`logFC(CALM / EmptyV)`>2 & PValue < 0.000001]
+dtlep_filter <- dtlep[`Ratio(treated vs. untreated)` <0.8 & `p-value(treated vs. untreated)` <0.05]
+head(dtce_filter)
+head(dtlep_filter)
+```
+
+```{r}
+ensembl_genes_ce <- dtce_filter$ENSEMBL
+head(ensembl_genes_ce)
+```
+
+```{r}
+gene_id_ce <- gconvert(ensembl_genes_ce, organism = "mmusculus", target = "ENTREZGENE_ACC", filter_na = F)$target
+head (gene_id_ce)
+```
+
+
+```{r}
+gene_id_lep <- dtlep_filter$"Entrez Gene"
+head (gene_id_lep)
+```
+
+```{r}
+gene_id_ce.list <- as.list(gene_id_ce)
+gene_id_lep.list <- as.list(gene_id_lep)
+```
+
+```{r}
+intersecting_genes <- intersect(gene_id_ce.list, gene_id_lep.list)
+intersecting_genes
+```
+
+```{r}
+intersecting_genes.dt <- unlist(intersecting_genes)
+intersecting_genes.dt
+```
+
+
+```{r}
+common_genes <- getSYMBOL(c('15396', '15395', '15405', '20471', '15402', '15404', '15397', '15400'), data='org.Mm.eg')
+common_genes
+```
+```{r}
+common_genes
+```
+
+```{r}
+sessionInfo()
+```
+
