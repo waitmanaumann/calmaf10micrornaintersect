@@ -1,0 +1,142 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+plot(cars)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
+
+
+```{r}
+getwd()
+```
+
+```{r}
+setwd("C:/Users/waumann/Documents/CALM-AF10_Mouse_Microarraydata_Wechsler")
+```
+
+```{r, setup, include=FALSE} 
+### change working directory for whole notbebook. if want to change wd for individual chunk, can do setwd
+knitr::opts_knit$set(root.dir = 'C:/Users/waumann/Documents/CALM-AF10_Mouse_Microarraydata_Wechsler')
+```
+
+
+
+```{r}
+getwd()
+```
+
+
+
+```{r}
+original_data <- file.path("MicroarrayANOVAresults.xlsx")
+```
+
+```{r}
+lmbvnolmb <- readxl::read_xlsx("MicroarrayANOVAresults.xlsx", sheet = 1
+                )
+```
+
+```{r}
+colnames(lmbvnolmb)
+```
+
+```{r}
+class(lmbvnolmb)
+```
+
+```{r}
+head(lmbvnolmb)
+```
+
+```{r library}
+# magrittr pipe
+library(magrittr)
+```
+
+```{r}
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+BiocManager::install("DESeq2")
+```
+
+```{r}
+# Load the DESeq2 library
+library(DESeq2)
+
+BiocManager::install("EnhancedVolcano")
+
+# We will be making fancy volcano plots
+library(EnhancedVolcano)
+```
+
+
+,'Hoxa9', 'Hoxa7', 'Hoxa9','Hoxa11', 'Hoxa10', 'Hoxa13','Hoxa9', 'Aldh1a3', 'Shisa2', 'Zfp37', 'Hoxa5', 'Hpgd', '8430419K02Rik', 'Hoxa3', 'Hoxa11as', 'Meis1'
+
+
+```{r}
+#EnhancedVolcano actually simply outputs a ggplot, and so after the final ) you can change it even more if you want. 
+EnhancedVolcano(lmbvnolmb,
+                x = 'Ratio(treated vs. untreated)', # fold change statistic to plot
+                y = 'p-value(treatment)', # significance values
+                lab = lmbvnolmb$'Gene Symbol', # labels for points
+                pCutoff = 0.05, # The p value cutoff we will use (default)
+                FCcutoff = .75, # The fold change cutoff (default)
+                title = NULL, # no title
+                subtitle = NULL, # or subtitle
+                caption = NULL, # or caption
+                labSize = 4,  # smaller labels
+                legendLabels= NULL,
+    selectLab = c('Six1','Hoxa9', 'Hoxa5','Hoxa11', 'Hoxa10', 'Hoxa3'),
+    drawConnectors = TRUE,
+    widthConnectors = 1.0,
+    colConnectors = 'black',
+ 
+    labCol = 'black',
+    labFace = 'bold',
+      xlab = bquote("Ratio of Treated to Untreated"),
+  ylab = bquote("P value"),
+   xlim = c(0.5, 1.5),
+  ylim = c(0, 5),
+   col = c( "forestgreen", "grey30", "red2","royalblue")
+   ) 
+
+theme_classic()
+    
+```
+```{r}
+# Create a plots directory if it doesn't already exist
+plots_dir <- file.path("plots", "calmvempty")
+if(!dir.exists(plots_dir)){
+  dir.create(plots_dir, recursive = TRUE)
+}
+```
+
+```{r}
+# PNG of the volcano plot
+volcano_file2 <- file.path(plots_dir, "lmbvnolmb2.png")
+```
+
+```{r}
+ggsave(volcano_file2, plot = last_plot(), dpi = 1000)
+```
+
+
+
+
+```{r}
+sessionInfo()
+```

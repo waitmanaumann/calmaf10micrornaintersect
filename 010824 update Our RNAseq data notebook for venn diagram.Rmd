@@ -1,0 +1,438 @@
+---
+title: "RNAseq Data"
+output:
+  html_document:
+    df_print: paged
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+plot(cars)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
+
+```{r}
+getwd()
+```
+a
+```{r, setup, include=FALSE} 
+### change working directory for whole notbebook. if want to change wd for individual chunk, can do setwd
+knitr::opts_knit$set(root.dir = 'C:/Users/waumann/Documents/CALM-AF10_Mouse_RNAseqdata_Wechsler')
+```
+
+```{r}
+getwd()
+```
+
+```{r}
+wait_mouse <- file.path("Home")
+if(!dir.exists(wait_mouse)){
+  dir.create(wait_mouse, recursive = TRUE)}
+```
+
+```{r}
+original_data <- file.path("DifferentalExpression.xlsx")
+```
+
+```{r}
+calm_mutant <- readxl::read_xlsx("DifferentalExpression.xlsx", sheet = 2
+                )
+```
+
+```{r}
+calm_empty <- readxl::read_xlsx("DifferentalExpression.xlsx", sheet = 3
+                )
+empty_mutant <- readxl::read_xlsx("DifferentalExpression.xlsx", sheet = 4)
+
+```
+
+```{r}
+colnames(calm_empty)
+```
+
+```{r}
+class(calm_empty)
+```
+
+```{r}
+head(calm_empty)
+```
+
+```{r library}
+# magrittr pipe
+library(magrittr)
+```
+
+```{r}
+# Load the DESeq2 library
+BiocManager::install("DESeq2")
+library(DESeq2)
+```
+
+```{r}
+BiocManager::install("EnhancedVolcano")
+
+# We will be making fancy volcano plots
+library(EnhancedVolcano)
+```
+
+```{r volcano}
+#EnhancedVolcano actually simply outputs a ggplot, and so after the final ) you can change it even more if you want. 
+EnhancedVolcano(calm_empty,
+                x = 'logFC(CALM / EmptyV)', # fold change statistic to plot
+                y = 'PValue', # significance values
+                lab = calm_empty$GeneName, # labels for points
+                pCutoff = 1e-06, # The p value cutoff we will use 
+                FCcutoff = 2, # The fold change cutoff 
+                pointSize = c(ifelse(calm_empty$GeneName("Six1"), 8, 1)),
+                title = NULL, # no title
+                subtitle = NULL, # or subtitle
+                caption = NULL, # or caption
+                labSize = 4,  # smaller labels
+                legendLabels=c('Not sig.','Log (base 2) FC','p-value',
+      'p-value & Log (base 2) FC'),
+    legendPosition = 'bottom',
+    legendLabSize = 12,
+    legendIconSize = 2,
+        selectLab = c('Six1','Hoxa9', 'Hoxa5','Hoxa11', 'Hoxa10', 'Hoxa3'),
+       gridlines.major = TRUE,
+    gridlines.minor = FALSE,
+     drawConnectors = TRUE,
+    widthConnectors = 1.0,
+    colConnectors = 'black',
+ 
+    labCol = 'black',
+    labFace = 'bold',
+    )
+                 
+  # change the overall theme -- this is ggplot modifications
+  theme_classic() 
+
+```
+
+```{r}
+install.packages("dplyr")
+library("dplyr")  
+genenamevector <- pull(calm_empty, GeneName)
+```
+
+```{r}
+class(genenamevector)
+```
+```{r}
+genenamevector2 <- as.list(genenamevector)
+```
+
+```{r}
+class(genenamevector2)
+```
+
+```{r}
+idgenes <- c('Six1','Hoxa9', 'Hoxa5','Hoxa11', 'Hoxa10', 'Hoxa3', 'Hoxa7', 'Hoxa11as')
+```
+
+```{r}
+class(idgenes)
+```
+
+                widthConnectors = .11,
+                lengthConnectors = unit(.11, "npc"),
+
+
+```{r volcano5}
+#EnhancedVolcano actually simply outputs a ggplot, and so after the final ) you can change it even more if you want. 
+EnhancedVolcano(calm_empty,
+                x = 'logFC(CALM / EmptyV)', # fold change statistic to plot
+                y = 'PValue', # significance values
+                lab = calm_empty$GeneName, # labels for points
+                title = NULL, # no title
+                subtitle = NULL, # or subtitle
+                caption = NULL, # or caption
+                pCutoff = 1e-06, # The p value cutoff we will use 
+                cutoffLineType = 'blank',
+                FCcutoff = 2, # The fold change cutoff
+                hline = c(1e-06), # The p value cutoff we will use 
+                hlineCol = c('red'), # The fold change cutoff 
+                vline = c(2),
+                vlineCol = c('red'),
+                hlineWidth = c(1.0),
+                vlineWidth = c(1.0),
+                selectLab = idgenes,
+                gridlines.major = TRUE,
+                gridlines.minor = FALSE,
+                drawConnectors = TRUE,
+                directionConnectors = 'both',
+
+                max.overlaps = Inf,
+                
+                
+                labCol = 'black',
+                
+                
+                
+    )
+                 
+  # change the overall theme -- this is ggplot modifications
+  theme_classic() 
+
+```
+
+```{r}
+calm_empty %>%
+  select('logFC(CALM / EmptyV)') %>%
+  min() %>%
+  floor() 
+```
+```{r}
+calm_empty %>%
+  select('logFC(CALM / EmptyV)') %>%
+  max() %>%
+  ceiling() 
+```
+
+```{r}
+calm_empty %>%
+  select('PValue') %>%
+  min() %>%
+  floor() 
+```
+
+```{r}
+calm_empty %>%
+  select('PValue') %>%
+  max() %>%
+  ceiling() 
+```
+
+```{r}
+calm_emptyplay <- calm_empty
+```
+
+```{r}
+head(calm_emptyplay)
+```
+```{r}
+
+calm_emptyplay2 <- calm_emptyplay %>%
+  rename(log_fc = "logFC(CALM / EmptyV)")
+```
+
+```{r}
+samples <- samples %>%
+  mutate(gene_type = case_when(log_fc >= 1 & adj_p_val <= 0.05 ~ "up",
+                               log_fc <= -1 & adj_p_val <= 0.05 ~ "down",
+                               TRUE ~ "ns"))   
+```
+
+
+
+
+```{r}
+plot <- calm_emptyplay2 %>%
+  ggplot(aes(x = log_fc,
+             y = -log10(PValue)))+
+            
+  geom_hline(yintercept = -log10(0.05),
+                linetype = "dashed") + 
+  
+  geom_vline(xintercept = c( log2(2)),
+                linetype = "dashed")+
+  
+  scale_x_continuous(breaks = c(seq(-4, 12, 1)),  
+                     limits = c(-4, 12))+
+  
+  scale_y_continuous(breaks = c(seq(0, 80, 10)),  
+                     limits = c(0, 80))+
+
+  geom_point() 
+plot
+```
+
+```{r}
+calm_emptyplay3 <- calm_emptyplay2 %>%
+  mutate(GeneName = case_when(log_fc >= 2 & PValue <= 1e-06 ~ "up",
+                               TRUE ~ "ns"))   
+```
+
+```{r}
+calm_emptyplay3 %>%
+    count(GeneName) %>%
+    knitr::kable()
+```
+
+```{r}
+head(calm_emptyplay3)
+```
+
+```{r}
+cols <- c("up" = "green", "down" = "grey", "ns" = "grey") 
+sizes <- c("up" = 2, "down" = 1, "ns" = 1) 
+alphas <- c("up" = 2, "down" = 1, "ns" = 1)
+```
+
+
+```{r}
+plot2 <- calm_emptyplay3 %>%
+  ggplot(aes(x = log_fc,
+             y = -log10(PValue),
+             fill = GeneName,
+             size = GeneName,
+             alpha = GeneName))+
+            
+  geom_hline(yintercept = -log10(1e-6),
+                linetype = "dashed") + 
+  
+  geom_vline(xintercept = c(2),
+                linetype = "dashed")+
+  
+  scale_x_continuous(breaks = c(seq(-4, 12, 1)),  
+                     limits = c(-4, 12))+
+  
+  scale_y_continuous(breaks = c(seq(0, 80, 10)),  
+                     limits = c(0, 80))+
+
+  geom_point(shape = 21,    
+             colour = "black")+
+  
+  scale_fill_manual(values = cols)+ 
+  scale_size_manual(values = sizes)+
+  scale_alpha_manual(values = alphas)
+
+plot2
+```
+
+
+
+```{r}
+as.data.frame(idgenes)
+```
+
+```{r}
+class(idgenes)
+```
+```{r}
+idgenes.df <- as.data.frame(idgenes)
+```
+
+```{r}
+combinedgenes <- calm_emptyplay2 %>%
+  filter (GeneName %in% c("Six1", "Hoxa9", "Hoxa5", "Hoxa11", "Hoxa10", "Hoxa3", "Hoxa7", "Hoxa11as"))
+```
+
+
+```{r}
+plot3 <- calm_emptyplay3 %>%
+  ggplot(aes(x = log_fc,
+             y = -log10(PValue),
+             fill = GeneName,
+             size = GeneName,
+             alpha = GeneName))+
+            
+  geom_hline(yintercept = -log10(1e-6),
+                linetype = "dashed") + 
+  
+  geom_vline(xintercept = c(2),
+                linetype = "dashed")+
+  
+  scale_x_continuous(breaks = c(seq(-4, 12, 1)),  
+                     limits = c(-4, 12))+
+  
+  scale_y_continuous(breaks = c(seq(0, 80, 10)),  
+                     limits = c(0, 80))+
+
+  geom_point(shape = 21,    
+             colour = "black")+
+  
+  geom_point(data = combinedgenes,
+             shape = 21,
+             size = 2, 
+             fill = "red", 
+             colour = "black") + 
+  
+  geom_label_repel(data = combinedgenes,  
+                   aes(label = GeneName,
+                       fill = NULL,
+                       colour = "red",),
+                   box.padding = unit(1, "lines"),
+                   point.padding = unit (0, "lines"),
+                   force = 4,
+                   nudge_y = 2,
+                   max.overlaps = Inf,
+                   )+
+  
+  scale_fill_manual(values = cols)+ 
+  scale_size_manual(values = sizes)+
+  scale_alpha_manual(values = alphas)+
+
+  labs(title = "Genes with increased expression from RNAseq of CALM-AF10",
+       x = "log2(fold change)",
+       y = "-log10(adjusted P-value)",
+       colour = "Expression \nchange") +
+  theme_bw() + # Select theme with a white background  
+  theme(panel.border = element_rect(colour = "black", fill = NA, size= 0.5),    
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank()) 
+
+plot3
+```
+
+```{r}
+getwd()
+```
+
+```{r plots-dir, live = TRUE}
+# Create a plots directory if it doesn't already exist
+plots_dir <- file.path("plots", "calmvempty")
+if(!dir.exists(plots_dir)){
+  dir.create(plots_dir, recursive = TRUE)
+}
+```
+
+
+
+```{r}
+# PNG of the volcano plot
+volcano_file010824tiff <- file.path(plots_dir, "010824calmvemptytiff.tiff")
+```
+
+```{r}
+ggsave(volcano_file010824tiff, plot = last_plot(), dpi = 1000)
+```
+
+
+
+
+
+```{r}
+getwd()
+```
+
+
+```{r}
+# PNG of the volcano plot
+volcano_file3 <- file.path(plots_dir, "calmvempty.png")
+```
+
+```{r}
+ggsave(volcano_file3, plot = last_plot(), dpi = 1000)
+```
+
+```{r}
+getwd()
+```
+
+
+
+```{r}
+sessionInfo()
+```
+
